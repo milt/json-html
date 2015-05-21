@@ -48,18 +48,21 @@
      [:span.jh-empty-string]
      (escape-html s))])
 
-(defn render [v]
-    (let [t (type v)]
-      (cond
-       (= t Keyword) [:span.jh-type-string (render-keyword v)]
-       (= t js/String) [:span.jh-type-string (escape-html v)]
-       (= t js/Date) [:span.jh-type-date (.toString v)]
-       (= t js/Boolean) [:span.jh-type-bool (str v)]
-       (= t js/Number) [:span.jh-type-number v]
-       (satisfies? IMap v) (render-map v)
-       (satisfies? ISet v) (render-set v)
-       (satisfies? ICollection v) (render-collection v)
-       nil [:span.jh-empty nil])))
+(defn render [v & [overrides]]
+  (let [t (type v)
+        override (when overrides
+                     (get overrides t))]
+    (cond
+      override (override v)
+      (= t Keyword) [:span.jh-type-string (render-keyword v)]
+      (= t js/String) [:span.jh-type-string (escape-html v)]
+      (= t js/Date) [:span.jh-type-date (.toString v)]
+      (= t js/Boolean) [:span.jh-type-bool (str v)]
+      (= t js/Number) [:span.jh-type-number v]
+      (satisfies? IMap v) (render-map v)
+      (satisfies? ISet v) (render-set v)
+      (satisfies? ICollection v) (render-collection v)
+      nil [:span.jh-empty nil])))
 
 (defn edn->hiccup [edn]
   (render edn))
